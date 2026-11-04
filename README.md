@@ -16,6 +16,7 @@ A hands-on technical handbook and interview prep guide for building **AI Agents*
 | 07 | [07-memory](07-memory/README.md) | 🧠 Checkpointers & thread memory | Agent that remembers, persisted in MongoDB |
 | 08 | [08-human-in-the-loop](08-human-in-the-loop/README.md) | ✋ `interrupt()` & approval gates | Graph that pauses for a human yes/no |
 | 09 | [09-rag](09-rag/README.md) | 📚 Embeddings, chunking & vector search | PDF-grounded RAG assistant on Qdrant |
+| 10 | [10-mcp](10-mcp/README.md) | 🔌 Model Context Protocol | MCP tool server + client that discovers it |
 
 *   Work through the folders **in order** — each section builds on the previous one.
 *   Every README ends with **🎯 Interview Takeaways** for quick revision.
@@ -29,6 +30,7 @@ A hands-on technical handbook and interview prep guide for building **AI Agents*
 *   **Tools:** **Tavily** web search (`@langchain/tavily`) and custom tools validated with **Zod**.
 *   **Memory:** **MongoDB Atlas** checkpointer (`@langchain/langgraph-checkpoint-mongodb`, `mongodb`).
 *   **RAG:** **Qdrant** vector store (`@langchain/qdrant`), Gemini embeddings (`@langchain/google-genai`), `pdf-parse` and `@langchain/textsplitters`.
+*   **Interop:** **MCP** server and client SDKs (`@modelcontextprotocol/server`, `@modelcontextprotocol/client`).
 *   **Config:** `dotenv` for API keys and `PORT`.
 
 
@@ -40,6 +42,9 @@ LLM call (03)  ➡️  LLM + Tools (04)  ➡️  Custom Tools (05)  ➡️  Own 
 
        ➡️  Memory (07)  ➡️  Human Approval (08)  ➡️  Your Documents (09)
            "remembers"      "asks before acting"     "answers from your data"
+
+       ➡️  MCP (10)
+           "shares tools over a protocol"
 ```
 
 *   **LLM 💬:** Takes input and generates text.
@@ -49,6 +54,7 @@ LLM call (03)  ➡️  LLM + Tools (04)  ➡️  Custom Tools (05)  ➡️  Own 
 *   **Checkpointer 💾:** Saves the graph state per `thread_id`, which is what turns a stateless call into a conversation — and what makes a paused run resumable.
 *   **`interrupt()` ✋:** Stops the graph mid-run so a human can approve a sensitive action, then `Command({ resume })` continues it.
 *   **RAG 📚:** Retrieve the most similar chunks of your own documents and inject them into the prompt before the model answers.
+*   **MCP 🔌:** Move tools out of the agent into a standalone server, so any client can **discover** and call them over a standard protocol.
 
 
 ## ▶️ 4. Getting Started
@@ -62,7 +68,7 @@ LLM call (03)  ➡️  LLM + Tools (04)  ➡️  Custom Tools (05)  ➡️  Own 
 2.  Create a `.env` file with the keys that section needs:
     ```
     PORT=3000
-    GROQ_API_KEY=your_groq_key        # 03
+    GROQ_API_KEY=your_groq_key        # 03, 10
     GOOGLE_API_KEY=your_gemini_key    # 04–09
     TAVILY_API_KEY=your_tavily_key    # 04
     MONGO_URI=your_mongodb_uri        # 07, 08
@@ -74,8 +80,9 @@ LLM call (03)  ➡️  LLM + Tools (04)  ➡️  Custom Tools (05)  ➡️  Own 
     curl -X POST http://localhost:3000/api/chat -H "Content-Type: application/json" -d "{\"prompt\": \"Hello!\"}"
     ```
 
-*   📌 In **04–09**, `.env` lives in `src/` — run `node app.js` from inside `src/`.
+*   📌 In **04–10**, `.env` lives in `src/` — run `node app.js` from inside `src/`.
 *   📌 Section **09** needs a Qdrant collection (`nodejsDocumentation`, 768 dimensions) and a one-time ingestion run — see its README.
+*   📌 Section **10** has two entry points — run `node client.js`; it spawns `server.js` itself.
 *   🔐 `.env` files are git-ignored; never commit API keys.
 
 
